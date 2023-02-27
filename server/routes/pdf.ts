@@ -3,7 +3,7 @@ import puppeteer from 'puppeteer-core';
 
 const LOCAL_CHROME_EXECUTABLE = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const url = query.url; 
   //  Open chrome
