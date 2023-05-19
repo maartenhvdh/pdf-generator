@@ -17,8 +17,7 @@ export default defineEventHandler(async (event) => {
   const page = await browser.newPage();
 
   await page.goto(url, {
-    timeout: 15 * 1000,
-    waitUntil: ['domcontentloaded'],
+    waitUntil: 'networkidle2'
   });
 
   const result = await page.pdf({
