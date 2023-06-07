@@ -16,9 +16,19 @@ export default defineEventHandler(async (event) => {
   });
   const page = await browser.newPage();
 
-  await page.goto(url, {
-    waitUntil: 'networkidle0'
-  });
+  // await page.goto(url, {
+  //   waitUntil: 'networkidle0'
+  // });
+
+  const navigationPromise = page.waitForNavigation({waitUntil: "domcontentloaded"});
+  console.log('did I get this far?1');
+  await page.goto(url);
+  console.log('did I get this far?2');
+  await navigationPromise;
+  console.log('did I get this far?3');
+  await page.waitForSelector('#contentidloaded');
+
+  console.log('did I get this far?4');
   
   await page.waitForSelector('#contentidloaded', {
     visible: true,
