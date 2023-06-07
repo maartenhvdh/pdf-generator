@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     headless: true,
   });
   const page = await browser.newPage();
-
+  console.log(page)
   // await page.goto(url, {
   //   waitUntil: 'networkidle0'
   // });
