@@ -9,26 +9,17 @@ export default defineEventHandler(async (event) => {
   //  Open chrome
   const executablePath = await edgeChromium.executablePath || LOCAL_CHROME_EXECUTABLE
 
-  const browser = await puppeteer.launch()
-  const page = await browser.newPage();
-  console.log(page)
-  // await page.goto(url, {
-  //   waitUntil: 'networkidle0'
-  // });
-
-  const navigationPromise = page.waitForNavigation({waitUntil: "domcontentloaded"});
-  console.log('did I get this far?1');
-  await page.goto(url);
-  console.log('did I get this far?2');
-  await navigationPromise;
-  console.log('did I get this far?3');
-  await page.waitForSelector('#contentidloaded');
-
-  console.log('did I get this far?4');
-  
-  await page.waitForSelector('#contentidloaded', {
-    visible: true,
+  const browser = await puppeteer.launch({
+    executablePath,
+    args: edgeChromium.args,
+    headless: true,
   });
+  const page = await browser.newPage();
+
+  await page.goto(url, {
+    waitUntil: 'networkidle0'
+  });
+
   const result = await page.pdf({
     format: 'a4',
   });
