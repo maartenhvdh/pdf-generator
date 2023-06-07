@@ -9,11 +9,7 @@ export default defineEventHandler(async (event) => {
   //  Open chrome
   const executablePath = await edgeChromium.executablePath || LOCAL_CHROME_EXECUTABLE
 
-  const browser = await puppeteer.launch({
-    executablePath,
-    args: edgeChromium.args,
-    headless: true,
-  });
+  const browser = await puppeteer.launch()
   const page = await browser.newPage();
   console.log(page)
   // await page.goto(url, {
