@@ -3,36 +3,45 @@ import puppeteer from 'puppeteer-core';
 
 const LOCAL_CHROME_EXECUTABLE = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
-const waitTillHTMLRendered = async (page, timeout = 30000) => {
-  const checkDurationMsecs = 1000;
-  const maxChecks = timeout / checkDurationMsecs;
-  let lastHTMLSize = 0;
-  let checkCounts = 1;
-  let countStableSizeIterations = 0;
-  const minStableSizeIterations = 3;
-
-  while (checkCounts++ <= maxChecks) {
-    let html = await page.content();
-    let currentHTMLSize = html.length;
-
-    let bodyHTMLSize = await page.evaluate(() => document.body.innerHTML.length);
-
-    console.log('last: ', lastHTMLSize, ' <> curr: ', currentHTMLSize, " body html size: ", bodyHTMLSize);
-
-    if (lastHTMLSize != 0 && currentHTMLSize == lastHTMLSize)
-      countStableSizeIterations++;
-    else
-      countStableSizeIterations = 0; //reset the counter
-
-    if (countStableSizeIterations >= minStableSizeIterations) {
-      console.log("Page rendered fully..");
-      break;
-    }
-
-    lastHTMLSize = currentHTMLSize;
-    await page.waitForTimeout(checkDurationMsecs);
-  }
-};
+const waitForDOMToSettle = (page, timeoutMs = 30000, debounceMs = 1000) =>
+  page.evaluate(
+    (timeoutMs, debounceMs) => {
+      let debounce = (func, ms = 1000) => {
+        let timeout;
+        return (...args) => {
+          console.log("in debounce, clearing timeout again");
+          clearTimeout(timeout);
+          timeout = setTimeout(() => {
+            func.apply(this, args);
+          }, ms);
+        };
+      };
+      return new Promise((resolve, reject) => {
+        let mainTimeout = setTimeout(() => {
+          observer.disconnect();
+          reject(new Error("Timed out whilst waiting for DOM to settle"));
+        }, timeoutMs);
+ 
+        let debouncedResolve = debounce(async () => {
+          observer.disconnect();
+          clearTimeout(mainTimeout);
+          resolve();
+        }, debounceMs);
+ 
+        const observer = new MutationObserver(() => {
+          debouncedResolve();
+        });
+        const config = {
+          attributes: true,
+          childList: true,
+          subtree: true,
+        };
+        observer.observe(document.body, config);
+      });
+    },
+    timeoutMs,
+    debounceMs
+  );
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -51,8 +60,8 @@ export default defineEventHandler(async (event) => {
   //   waitUntil: 'networkidle0'
   // });
 
-  await page.goto(url, { 'timeout': 10000, 'waitUntil': 'load' });
-  await waitTillHTMLRendered(page)
+  await page.goto(url, { 'timeout': 10000, 'waitUntil': 'domcontentloaded' });
+  await waitForDOMToSettle(page);
 
 
   const result = await page.pdf({
