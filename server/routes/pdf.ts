@@ -16,9 +16,8 @@ export default defineEventHandler(async (event) => {
   });
   const page = await browser.newPage();
 
-  await page.goto(url, {
-    waitUntil: 'networkidle0'
-  });
+  await page.goto(url);
+  await timeout(2000);
 
   const result = await page.pdf({
     format: 'a4',
