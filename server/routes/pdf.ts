@@ -20,7 +20,9 @@ export default defineEventHandler(async (event) => {
     waitUntil: 'networkidle0'
   });
   
-  await page.waitForSelector('#contentisloaded')
+  await page.waitForSelector('#contentidloaded', {
+    visible: true,
+  });
   const result = await page.pdf({
     format: 'a4',
   });
